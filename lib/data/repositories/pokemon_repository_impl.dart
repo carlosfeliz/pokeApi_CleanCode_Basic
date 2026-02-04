@@ -1,4 +1,5 @@
 import '../../domain/entities/pokemon.dart';
+import '../../domain/entities/pokemon_detail.dart';
 import '../../domain/usecases/get_pokemons.dart';
 import '../datasources/pokemon_local_datasource.dart';
 import '../datasources/pokemon_remote_datasource.dart';
@@ -11,8 +12,8 @@ class PokemonRepositoryImpl implements PokemonRepository {
   PokemonRepositoryImpl(this.remoteDataSource, this.localDataSource);
 
   @override
-  Future<List<Pokemon>> getPokemonsFromApi() async {
-    return await remoteDataSource.fetchPokemons();
+  Future<List<Pokemon>> getPokemonsFromApi({int offset = 0, int limit = 10}) async {
+    return await remoteDataSource.fetchPokemons(offset: offset, limit: limit);
   }
 
   @override
@@ -23,5 +24,10 @@ class PokemonRepositoryImpl implements PokemonRepository {
   @override
   Future<void> savePokemons(List<Pokemon> pokemons) async {
     await localDataSource.cachePokemons(pokemons);
+  }
+
+  @override
+  Future<PokemonDetail> getPokemonDetail(int id) async {
+    return await remoteDataSource.fetchPokemonDetail(id);
   }
 }

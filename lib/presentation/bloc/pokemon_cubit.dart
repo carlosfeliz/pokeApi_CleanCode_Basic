@@ -35,15 +35,40 @@ class PokemonState {
 }
 class PokemonCubit extends Cubit<PokemonState> {
   final GetPokemons getPokemons;
+  int _page = 0;
 
   PokemonCubit(this.getPokemons) : super(PokemonState.initial());
 
-  Future<void> fetchPokemons() async {
-    emit(state.copyWith(isLoading: true));
+  Future<void> fetchPokemons({bool reset = false}) async {
+    if (reset) {
+      _page = 0;
+      emit(state.copyWith(isLoading: true, pokemons: [])); // Reset list on full refresh
+    } else {
+      // If we are already loading or at end? (Infinite scroll logic usually needs 'hasReachedMax')
+      // For now let's just use isLoading to prevent double fetch
+      if (state.isLoading) return; 
+      // We could add a separate 'isLoadingMore' to state to not show full screen loader for next pages
+      // For simplicity in this step, re-using isLoading but we might want to distinguish UI.
+    }
+    
+    // Simplification: unique loading state for first load vs others would be better for UX
+    // But let's stick to base requirements first.
+    // Actually, if we use 'isLoading' for everything, the list will disappear on "Load More" if we aren't careful.
+    // Let's treat 'isLoading' as 'First Loading' mostly.
+    
+    if (_page == 0) emit(state.copyWith(isLoading: true)); 
+    
     try {
-      final pokemons = await getPokemons.execute();
-      print(pokemons); // Verifica que los pokémones están siendo cargados
-      emit(state.copyWith(pokemons: pokemons, isLoading: false));
+      final newPokemons = await getPokemons.execute(page: _page);
+      
+      final totalPokemons = reset ? newPokemons : [...state.pokemons, ...newPokemons];
+      
+      emit(state.copyWith(
+        pokemons: totalPokemons, 
+        isLoading: false
+      ));
+      
+      _page++;
     } catch (e) {
       emit(state.copyWith(errorMessage: e.toString(), isLoading: false));
     }

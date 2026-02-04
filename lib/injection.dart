@@ -6,6 +6,7 @@ import 'data/datasources/pokemon_remote_datasource.dart';
 import 'data/repositories/pokemon_repository_impl.dart';
 import 'domain/usecases/get_pokemons.dart';
 import 'presentation/bloc/pokemon_cubit.dart';
+import 'presentation/bloc/pokemon_detail_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -33,7 +34,10 @@ Future<void> init() async {
   getIt.registerLazySingleton<GetPokemons>(
     () => GetPokemons(getIt<PokemonRepositoryImpl>()),
   );
+  getIt.registerLazySingleton<GetPokemonDetail>(
+      () => GetPokemonDetail(getIt<PokemonRepositoryImpl>()));
 
   // Inyección del Cubit (manejador de estado)
   getIt.registerFactory(() => PokemonCubit(getIt<GetPokemons>()));
+  getIt.registerFactory(() => PokemonDetailCubit(getIt<GetPokemonDetail>()));
 }
